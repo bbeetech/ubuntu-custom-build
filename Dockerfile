@@ -74,7 +74,7 @@ RUN mkdir -p /iso-build/iso/boot/grub && \
     cp /iso-build/chroot/boot/initrd.img-* /iso-build/iso/boot/
 
 # Create GRUB configuration
-RUN cat > /iso-build/iso/boot/grub/grub.cfg << EOF
+RUN bash -c 'cat > /iso-build/iso/boot/grub/grub.cfg << "EOF"
 set timeout=5
 set default=0
 
@@ -82,7 +82,7 @@ menuentry "Debian 12 Custom Kernel" {
     linux /boot/vmlinuz-* root=/dev/sda1 ro
     initrd /boot/initrd.img-*
 }
-EOF
+EOF'
 
 # Create ISO
 RUN grub-mkrescue -o /custom-debian.iso /iso-build/iso
