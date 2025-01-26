@@ -76,7 +76,7 @@ jobs:
 
     - name: Mount and Copy Root Filesystem
       run: |
-        docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
+        docker run --privileged --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
           mkdir -p /mnt/rootfs
           mount -o loop /output/ubuntu-24-arm.img /mnt/rootfs
           cp -r /output/rootfs/* /mnt/rootfs/
