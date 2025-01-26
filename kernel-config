@@ -1,0 +1,7 @@
+# Enable MACVLAN
+CONFIG_MACVLAN=m
+
+# Enable cfg80211 (802.11 Wi-Fi virtual interface support)
+CONFIG_CFG80211=m
+CONFIG_CFG80211_WEXT=y
+CONFIG_MAC80211=m

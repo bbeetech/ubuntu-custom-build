@@ -1,0 +1,48 @@
+name: Build Ubuntu 24 ARM Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v3
+
+    - name: Build Docker Image
+      run: |
+        docker build -t ubuntu-arm-builder .
+
+    - name: Run Kernel and Image Build
+      run: |
+        docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
+          # Clone Linux Kernel
+          git clone --depth 1 --branch v6.5 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git && cd linux
+
+          # Copy custom kernel config
+          cp /build/kernel-config .config
+
+          # Build the kernel
+          make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+          make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
+          make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_install INSTALL_MOD_PATH=/output/rootfs
+          make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_PATH=/output/rootfs/boot install
+
+          # Download Ubuntu ARM rootfs
+          mkdir -p /output/rootfs
+          wget https://partner-images.canonical.com/core/24.04/ubuntu-24.04-core-cloudimg-arm64-root.tar.gz
+          tar -xpf ubuntu-24.04-core-cloudimg-arm64-root.tar.gz -C /output/rootfs
+
+          # Package into an image
+          cd /output
+          qemu-img create -f raw ubuntu-24-arm.img 2G
+          mkfs.ext4 -F ubuntu-24-arm.img
+          mkdir /mnt/rootfs && mount -o loop ubuntu-24-arm.img /mnt/rootfs
+          cp -r rootfs/* /mnt/rootfs
+          umount /mnt/rootfs
+        "
