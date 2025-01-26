@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-image:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     steps:
     - name: Checkout Code
@@ -82,3 +82,17 @@ jobs:
           cp -r /output/rootfs/* /mnt/rootfs/
           umount /mnt/rootfs
         "
+
+    - name: Compress Image
+      run: |
+        docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
+          cd /output
+          gzip ubuntu-24-arm.img
+        "
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ubuntu-24-arm-image
+        path: ${{ github.workspace }}/output/ubuntu-24-arm.img.gz
+        if-no-files-found: error
