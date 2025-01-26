@@ -53,8 +53,17 @@ jobs:
       run: |
         docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
           mkdir -p /output/rootfs
+          cd /output
           wget https://cdimage.ubuntu.com/ubuntu-base/releases/24.10/release/ubuntu-base-24.10-base-arm64.tar.gz
-          tar -xpf ubuntu-base-24.10-base-arm64.tar.gz -C /output/rootfs
+          # Create a temporary directory for extraction
+          mkdir -p temp_rootfs
+          # Extract with --no-overwrite-dir to handle existing symlinks
+          tar --no-overwrite-dir -xpf ubuntu-base-24.10-base-arm64.tar.gz -C temp_rootfs
+          # Move contents to final rootfs directory
+          cp -a temp_rootfs/. /output/rootfs/
+          # Clean up
+          rm -rf temp_rootfs
+          rm ubuntu-base-24.10-base-arm64.tar.gz
         "
 
     - name: Create and Format Image
