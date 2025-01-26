@@ -1,0 +1,43 @@
+name: Build Custom Debian ISO
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build Docker image and extract ISO
+      run: |
+        # Create output directory
+        mkdir -p ${{ github.workspace }}/output
+
+        # Build Docker image
+        docker build -t custom-debian-iso .
+
+        # Extract ISO from container
+        docker create --name temp-container custom-debian-iso
+        docker cp temp-container:/custom-debian.iso ${{ github.workspace }}/output/
+        docker rm temp-container
+
+        # Compress the ISO
+        cd ${{ github.workspace }}/output
+        xz -9 custom-debian.iso
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: custom-debian-iso
+        path: ${{ github.workspace }}/output/custom-debian.iso.xz
+        if-no-files-found: error
+        retention-days: 5
