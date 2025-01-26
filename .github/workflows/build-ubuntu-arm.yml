@@ -21,6 +21,7 @@ jobs:
     - name: Clone and Configure Kernel
       run: |
         docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
+          cd /output
           git clone --depth 1 --branch v6.13 https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git
           cd linux
           cp /build/kernel-config .config
@@ -30,21 +31,21 @@ jobs:
     - name: Build Kernel
       run: |
         docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
-          cd linux
+          cd /output/linux
           make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu-
         "
 
     - name: Install Kernel Modules
       run: |
         docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
-          cd linux
+          cd /output/linux
           make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- modules_install INSTALL_MOD_PATH=/output/rootfs
         "
 
     - name: Install Kernel
       run: |
         docker run --rm -v ${{ github.workspace }}/output:/output ubuntu-arm-builder /bin/bash -c "
-          cd linux
+          cd /output/linux
           make -j$(nproc) ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- INSTALL_PATH=/output/rootfs/boot install
         "
 
