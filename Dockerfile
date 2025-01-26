@@ -24,7 +24,6 @@ RUN apt-get update && apt-get install -y \
     parted \
     dosfstools \
     uuid-runtime \
-    grub-efi-arm64 \
     xz-utils \
     kmod \
     sudo \
